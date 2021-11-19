@@ -1,9 +1,5 @@
-from os import read
-from re import M
-import re
 from celery import Celery
-from celery.schedules import crontab
-from monolith.database import User, db, Messages
+from monolith.database import User, db
 from datetime import datetime, timedelta
 from random import seed, randint
 
@@ -16,19 +12,19 @@ _APP = None
 celery.conf.beat_schedule = {
     "check-every-minute-msg": {
         "task": "check_messages",
-        "schedule": timedelta(seconds=60),
+        "schedule": timedelta(seconds = 10),
      }, 
     "inbox_notifications": {
         "task": "notifications_inbox",
-        "schedule": timedelta(seconds = 60),
+        "schedule": timedelta(seconds = 10),
     },
     "sent_notifications": {
         "task": "notifications_sent",
-        "schedule": timedelta(seconds = 60),
+        "schedule": timedelta(seconds = 10),
     },
     "lottery-game":{
         "task": "lottery_task",
-        "schedule": timedelta(days = 30)     #day_of_month="1" for a monthly lottery, 60 seconds to do tests 
+        "schedule": timedelta(seconds = 30)     #day_of_month="1" for a monthly lottery, 60 seconds to do tests 
     },
     "check_deleted_users":{
         "task": "check_deleted_users",

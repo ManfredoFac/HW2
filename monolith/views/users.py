@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template, request
 from monolith.database import User, db
 from monolith.forms import UserForm, ReportForm, LotteryForm
 from flask_login import current_user
-from flask import Flask, flash, request, redirect, url_for
+from flask import request, redirect
 from werkzeug.utils import secure_filename
 import os
 _APP = None

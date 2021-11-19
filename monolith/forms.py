@@ -1,9 +1,7 @@
 import wtforms as f
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed
 from wtforms.validators import DataRequired
 from wtforms.widgets import TextArea
-from datetime import datetime
 
 class LoginForm(FlaskForm):
     email = f.StringField('Email', validators=[DataRequired()])

@@ -1,14 +1,10 @@
 import datetime
-from celery import Celery
 from flask import Flask
-from celery.schedules import crontab
 from monolith.auth import login_manager
-from monolith.database import Message, Messages, User, db
+from monolith.database import User, db
 from monolith.views import blueprints
-from flask_login import current_user
 from monolith.background import do_task
 import os
-import sys
 
 UPLOAD_FOLDER = os.path.abspath("monolith/static/profile_pics/")
 
@@ -34,7 +30,7 @@ def create_app():
 
     db.init_app(app)
     login_manager.init_app(app)
-    db.create_all(app=app)
+    db.create_all(app = app)
     # create a first admin user
     with app.app_context():
         do_task.delay()

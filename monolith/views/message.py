@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template
 from flask.globals import request
 from flask_login import current_user
 import re
-from monolith.database import User, db, Message, Messages
+from monolith.database import User, db, Message
 from monolith.forms import MessageForm
 from datetime import datetime
 from base64 import b64encode
@@ -237,8 +237,8 @@ def edit_message(receiver, msg = None):
             form = form, suggest = suggest)
     else:
         # build the message
-        message = build_message(form, msg)
-        photo = 'data:image/jpeg;base64,' + message.image if message.image != '' else None
+        message, recipients = build_message(form, msg)
+        photo = 'data:image/jpeg;base64,' + message.image if message.image else None
         if form.validate_on_submit():
             # checking if it is new or edited
             # message = build_message(form, msg)
@@ -248,7 +248,7 @@ def edit_message(receiver, msg = None):
                 # render a template with correct values
                 # (message ok for every dest, massage ok for some dests, 
                 # message not ok for anyone)
-                code, data = validate_message(message)
+                code, data = validate_message(message, recipients)
                 # user doesn't exists
                 if (code == USER_INEXISTENT):
                     return render_template("message.html", 
@@ -336,9 +336,9 @@ def set_all_read(list_read):
 
 
 # Check if the message is valid to be sent
-def validate_message(message):
+def validate_message(message, recipients):
     updated_list = []
-    recipients = message.dest
+    # recipients = message.dest
     # get the recipients list 
     recipients_list = recipients.split(", ")
     len_lis = len(recipients_list)
@@ -443,7 +443,9 @@ def result_send(updated_list, len_lis, message, removed_dst):
     # if there are no words forbidden for any recipient in the list
     # the message can be scheduled
     if len(updated_list) == len_lis:
-        send_message(message)
+        for email in updated_list:
+            message.recipient = db.Query(User).filter(User.email == email).first().id
+            send_message(message)
         return (SCHEDULED, [])
     # else someone of the recipients has been removed
     else:
@@ -536,7 +538,7 @@ def send_message(message):
 
 # build a new message if msg is None, else edit msg 
 # (build a new message with same id of msg)
-def build_message(form, msg):
+def build_message(form: MessageForm, msg):
     # covert date to string
     str_date = date_to_string(form.date.data, form.time.data)
     # check if there is an image attached
@@ -549,12 +551,27 @@ def build_message(form, msg):
         image_string = byte_image.decode('utf-8')
     # build the message to draft or to send
     id = msg.id if msg else None
-    bold = True if request.form.get('bold') else False
-    italic = True if request.form.get('italic') else False
-    underline = True if request.form.get('underline') else False
-    return Message(current_user.email, form.receiver.data, 
+    
+    # query on id to search if draft? 
+    # create message
+    message = Message()
+    message.sender = current_user.id
+    #message.receiver = db.session.query(User).filter(User.email == form.receiver.data).first().id
+    message.body = form.body.data
+    message.time = str_date
+    message.image = image_string
+    message.draft = True if form.choice.data == 'Draft' else False
+    message.scheduled = True if form.choice.data == 'Scheduled' else False
+    message.bold = True if request.form.get('bold') else False
+    message.italic = True if request.form.get('italic') else False
+    message.underline = True if request.form.get('underline') else False
+    return (message, form.receiver.data)
+
+
+    """  return Message(current_user.email, form.receiver.data, 
         form.body.data, str_date, id, image_string, False,
         bold, italic, underline)
+        """
 
 
 # Return the message with id 'id' 

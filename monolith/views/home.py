@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template
 from werkzeug.utils import redirect
 from monolith.auth import current_user
-from monolith.views.auth import login
+from monolith.database import Message, db
+
 
 home = Blueprint('home', __name__)
 
@@ -11,12 +12,8 @@ def index():
         # calculate the number of notifications 
         # number of message received to read + number of message sent that have been read       
 
-        # get the list of messages' id that have been read
-        if current_user.read == '':
-            read = 0
-        else:
-            read = len(current_user.read.split(" "))
-        number = current_user.to_read + read
-        return render_template("index.html", number = number)
+        # get the list of messages that has to be read
+        messages = db.session.query(Message).filter(Message.receiver == current_user.id).all()
+        return render_template("index.html", number = len(messages))
     else:
         return redirect("/login")

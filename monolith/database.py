@@ -1,7 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import defaultload
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime, date
 import json
 
 db = SQLAlchemy()
@@ -13,29 +11,35 @@ class User(db.Model):
 
     __tablename__ = 'user'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     photo_path = db.Column(db.Unicode(128), default = 'profile_pics/profile_pic.svg')
-    email = db.Column(db.Unicode(128), nullable=False)
+    email = db.Column(db.Unicode(128), nullable = False)
     firstname = db.Column(db.Unicode(128))
     lastname = db.Column(db.Unicode(128))
     password = db.Column(db.Unicode(128))
-    to_read = db.Column(db.Integer, default = 0)
-    read = db.Column(db.Unicode(128), default="")
+    
+    # number of messages to read
+    # to_read = db.Column(db.Integer, default = 0)
+    
+    # id of read messages
+    # read = db.Column(db.Unicode(128), default = "")
+
+    """
     received = db.Column(db.Unicode(128), default = '[]')
     sent = db.Column(db.Unicode(128), default = '[]')
     to_be_sent = db.Column(db.Unicode(128), default = '[]')
     draft = db.Column(db.Unicode(8196), default = '[]')
-    forbidden_words = db.Column(db.Unicode(128), default = "")
-    blacklist = db.Column(db.Unicode(128), default = "")
+    """
+    forbidden_words = db.Column(db.Unicode(1024), default = "")
+    blacklist = db.Column(db.Unicode(1024), default = "")
     date_of_birth = db.Column(db.DateTime)
     reports = db.Column(db.Integer, default = 0)
     lottery_number = db.Column(db.Integer, default = 0)
     points = db.Column(db.Integer, default = 0)
-    is_blocked = db.Column(db.Boolean, default=False)
-    is_active = db.Column(db.Boolean, default=True)
-    is_admin = db.Column(db.Boolean, default=False)
+    is_blocked = db.Column(db.Boolean, default = False)
     deleted = db.Column(db.Boolean, default = False)
-    is_anonymous = False
+    is_active = db.Column(db.Boolean, default = True)
+
 
     def __init__(self, *args, **kw):
         super(User, self).__init__(*args, **kw)
@@ -56,7 +60,36 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
-class Message():
+class Message(db.Model):
+
+    __tablename__ = 'message'
+
+    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
+    # who sends the message
+    sender = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
+    # who receives the message (one message for each user as recipient)
+    receiver = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
+    # body of the messages
+    body = db.Column(db.Unicode(8196), nullable = False)
+    # delivery time
+    time = db.Column(db.Unicode(128), nullable = False)
+    # base64 photo
+    image = db.Column(db.Unicode(8196)) 
+    # indicates if it is a draft message
+    draft = db.Column(db.Boolean)
+    # indicates if it is a scheduled message
+    scheduled = db.Column(db.Boolean)
+    # indicates if it is read by the recipient
+    read = db.Column(db.Boolean, default = False)
+    # indicates if it is bold
+    bold = db.Column(db.Boolean, default = False)
+    # indicates if it is italic
+    italic = db.Column(db.Boolean, default = False)
+    # indicates if it is underlined
+    underline = db.Column(db.Boolean, default = False)
+  
+"""
+
     def __init__(self, sender: str, dest: str, body: str, time: str, 
         id = None, image = None, read = False, 
         bold = False, italic = False, underline = False):
@@ -109,4 +142,4 @@ class Messages():
         m = Messages()
         for message in messages:
             m.enqueue(self.to_message(message))
-        return m
+        return m"""
